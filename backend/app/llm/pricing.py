@@ -6,6 +6,12 @@ unknown models simply report zero cost rather than failing.
 
 PRICES_PER_MILLION: dict[str, tuple[float, float]] = {
     # model: (input, output)
+    # Gemini free-tier usage costs nothing, so these report zero. If you move
+    # to the paid tier, replace with the current rates from Google's pricing page.
+    "gemini-3.5-flash": (0.0, 0.0),
+    "gemini-2.5-flash": (0.0, 0.0),
+    "gemini-2.5-flash-lite": (0.0, 0.0),
+    "gemini-embedding-001": (0.0, 0.0),
     "gpt-5.6-sol": (5.00, 30.00),
     "gpt-5.6-terra": (2.50, 15.00),
     "gpt-5.6-luna": (1.00, 6.00),

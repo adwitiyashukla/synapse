@@ -105,7 +105,7 @@ The full design rationale lives in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 | Agent | Hand-rolled orchestrator | Full control over the loop, no framework lock-in |
 | Vector store | ChromaDB (persistent) | Local-first HNSW index, with a pure-NumPy fallback |
 | Sparse retrieval | rank-bm25 | Classic lexical recall to complement dense vectors |
-| LLM | OpenAI GPT-5.6 family | Configurable; any OpenAI-compatible endpoint works |
+| LLM | Google Gemini (free tier) by default | Any OpenAI-compatible endpoint works: OpenAI, Groq, Ollama |
 | Frontend | React 18 + Vite | Streaming chat UI, markdown rendering, recharts dashboard |
 | Auth | PyJWT + bcrypt | Access/refresh token pattern |
 | Tests | pytest + httpx + fake provider | Deterministic agent tests without network calls |
@@ -121,7 +121,8 @@ debuggable and easy to reason about.
 
 ### Prerequisites
 - Python 3.11+ and Node 20+
-- An OpenAI API key
+- A free Gemini API key from https://aistudio.google.com/apikey (no card needed).
+  Any OpenAI-compatible provider works too; see `.env.example`.
 
 ### 1. Clone and configure
 
@@ -129,7 +130,7 @@ debuggable and easy to reason about.
 git clone https://github.com/<your-username>/synapse.git
 cd synapse
 cp .env.example .env
-# edit .env: set OPENAI_API_KEY and SECRET_KEY
+# edit .env: set GEMINI_API_KEY and SECRET_KEY
 ```
 
 ### 2. Run the backend
@@ -154,7 +155,7 @@ Interactive API docs are at http://localhost:8000/api/docs.
 ### Docker (single container)
 
 ```bash
-cp .env.example .env   # set OPENAI_API_KEY and SECRET_KEY
+cp .env.example .env   # set GEMINI_API_KEY and SECRET_KEY
 docker compose up --build
 ```
 
@@ -169,11 +170,11 @@ Everything is set via environment variables (see `.env.example`). Key options:
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `OPENAI_API_KEY` | (required) | API key for the model provider |
-| `OPENAI_BASE_URL` | `https://api.openai.com/v1` | Point at Groq/Together/Ollama for other providers |
-| `CHAT_MODEL` | `gpt-5.6-luna` | Default conversation model |
-| `UTILITY_MODEL` | `gpt-4o-mini` | Cheap model for titles, summaries and reranking |
-| `AVAILABLE_MODELS` | GPT-5.6 family + gpt-4.1, gpt-4o-mini | Models offered in the UI picker |
+| `GEMINI_API_KEY` | (required) | API key; `OPENAI_API_KEY` and `LLM_API_KEY` also accepted |
+| `OPENAI_BASE_URL` | Gemini's OpenAI-compatible endpoint | Point at OpenAI/Groq/Ollama for other providers |
+| `CHAT_MODEL` | `gemini-3.5-flash` | Default conversation model |
+| `UTILITY_MODEL` | `gemini-2.5-flash-lite` | Cheap model for titles, summaries and reranking |
+| `AVAILABLE_MODELS` | Gemini 3.5/2.5 flash family | Models offered in the UI picker |
 | `VECTOR_STORE` | `chroma` | `chroma` or `memory` (NumPy exact search) |
 | `RERANK_ENABLED` | `true` | LLM reranking of fused retrieval results |
 | `SECRET_KEY` | (required) | JWT signing secret |

@@ -3,6 +3,7 @@
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -32,13 +33,22 @@ class Settings(BaseSettings):
     # Database
     database_url: str = f"sqlite+aiosqlite:///{BASE_DIR / 'data' / 'synapse.db'}"
 
-    # LLM provider (any OpenAI-compatible API works via base_url)
-    openai_api_key: str = ""
-    openai_base_url: str = "https://api.openai.com/v1"
-    chat_model: str = "gpt-5.6-luna"
-    utility_model: str = "gpt-4o-mini"
-    embedding_model: str = "text-embedding-3-small"
-    available_models: str = "gpt-5.6-luna,gpt-5.6-terra,gpt-5.6-sol,gpt-4.1,gpt-4o-mini"
+    # LLM provider (any OpenAI-compatible API works via base_url).
+    # Defaults target Google Gemini's free tier via its OpenAI-compatible
+    # endpoint. For OpenAI itself set OPENAI_BASE_URL=https://api.openai.com/v1
+    # and OpenAI model names (see .env.example).
+    # The key is read from GEMINI_API_KEY, OPENAI_API_KEY or LLM_API_KEY.
+    openai_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "GEMINI_API_KEY", "OPENAI_API_KEY", "LLM_API_KEY"
+        ),
+    )
+    openai_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai/"
+    chat_model: str = "gemini-3.5-flash"
+    utility_model: str = "gemini-2.5-flash-lite"
+    embedding_model: str = "gemini-embedding-001"
+    available_models: str = "gemini-3.5-flash,gemini-2.5-flash,gemini-2.5-flash-lite"
     max_agent_iterations: int = 6
     request_timeout_seconds: int = 90
 
