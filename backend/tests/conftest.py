@@ -68,13 +68,19 @@ class FakeProvider(LLMProvider):
             for word in turn["text"].split(" "):
                 yield {"type": "delta", "text": word + " "}
         if "tool_calls" in turn:
-            yield {
-                "type": "tool_calls",
-                "calls": [
-                    ToolCallRequest(id=f"call_{i}", name=name, arguments=args)
-                    for i, (name, args) in enumerate(turn["tool_calls"])
-                ],
-            }
+            calls = []
+            for i, spec in enumerate(turn["tool_calls"]):
+                name, args, *rest = spec
+                calls.append(
+                    ToolCallRequest(
+                        id=f"call_{i}",
+                        name=name,
+                        arguments=args,
+                        extra=rest[0] if rest else {},
+                        function_extra=rest[1] if len(rest) > 1 else {},
+                    )
+                )
+            yield {"type": "tool_calls", "calls": calls}
         yield {"type": "usage", "input_tokens": 100, "output_tokens": 20}
 
     async def complete(

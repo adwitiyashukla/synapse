@@ -34,7 +34,7 @@ class OpenAIProvider(LLMProvider):
         stream = await self.client.chat.completions.create(**kwargs)
 
         # Tool call fragments arrive incrementally and must be assembled by index.
-        pending_calls: dict[int, dict[str, str]] = {}
+        pending_calls: dict[int, dict[str, Any]] = {}
 
         async for chunk in stream:
             if chunk.usage is not None:
@@ -53,7 +53,14 @@ class OpenAIProvider(LLMProvider):
             if delta.tool_calls:
                 for tc in delta.tool_calls:
                     slot = pending_calls.setdefault(
-                        tc.index, {"id": "", "name": "", "arguments": ""}
+                        tc.index,
+                        {
+                            "id": "",
+                            "name": "",
+                            "arguments": "",
+                            "extra": {},
+                            "function_extra": {},
+                        },
                     )
                     if tc.id:
                         slot["id"] = tc.id
@@ -61,6 +68,13 @@ class OpenAIProvider(LLMProvider):
                         slot["name"] += tc.function.name
                     if tc.function and tc.function.arguments:
                         slot["arguments"] += tc.function.arguments
+                    # Preserve provider-specific fields (Gemini attaches thought
+                    # signatures here) so they can be echoed back verbatim.
+                    slot["extra"].update(getattr(tc, "model_extra", None) or {})
+                    if tc.function is not None:
+                        slot["function_extra"].update(
+                            getattr(tc.function, "model_extra", None) or {}
+                        )
 
         if pending_calls:
             calls = [
@@ -68,6 +82,8 @@ class OpenAIProvider(LLMProvider):
                     id=slot["id"] or f"call_{index}",
                     name=slot["name"],
                     arguments=slot["arguments"] or "{}",
+                    extra=slot["extra"],
+                    function_extra=slot["function_extra"],
                 )
                 for index, slot in sorted(pending_calls.items())
             ]

@@ -89,6 +89,30 @@ async def test_chat_with_tool_call(
     assert tool_log[0]["name"] == "calculator"
 
 
+async def test_provider_extra_fields_are_echoed_back(
+    client: AsyncClient, fake_provider: FakeProvider
+) -> None:
+    """Gemini attaches thought signatures to tool calls; they must be resent
+    verbatim on the next round or the API rejects the request."""
+    signature = {"extra_content": {"google": {"thought_signature": "sig-abc-123"}}}
+    fake_provider.turns = [
+        {"tool_calls": [("calculator", '{"expression": "1+1"}', signature)]},
+        {"text": "The result is 2."},
+    ]
+    headers = await register_and_login(client)
+    session_id = await create_session(client, headers)
+
+    response = await client.post(
+        f"/api/chat/{session_id}", json={"content": "1+1?"}, headers=headers
+    )
+    assert response.status_code == 200
+
+    second_round = fake_provider.calls[1]
+    assistant = next(m for m in second_round if m.get("tool_calls"))
+    echoed = assistant["tool_calls"][0]
+    assert echoed["extra_content"] == {"google": {"thought_signature": "sig-abc-123"}}
+
+
 async def test_chat_rejects_foreign_session(
     client: AsyncClient, fake_provider: FakeProvider
 ) -> None:

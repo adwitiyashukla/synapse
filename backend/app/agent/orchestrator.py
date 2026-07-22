@@ -106,7 +106,14 @@ async def run_agent(
                 {
                     "id": call.id,
                     "type": "function",
-                    "function": {"name": call.name, "arguments": call.arguments},
+                    "function": {
+                        "name": call.name,
+                        "arguments": call.arguments,
+                        **call.function_extra,
+                    },
+                    # Echo provider-specific fields (e.g. Gemini thought
+                    # signatures) exactly as they were received.
+                    **call.extra,
                 }
                 for call in pending_calls
             ],

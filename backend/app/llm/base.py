@@ -21,6 +21,10 @@ class ToolCallRequest:
     id: str
     name: str
     arguments: str  # raw JSON string as produced by the model
+    # Provider-specific passthrough fields that must be echoed back verbatim
+    # when the tool call is resent (e.g. Gemini thought signatures).
+    extra: dict[str, Any] = field(default_factory=dict)
+    function_extra: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
