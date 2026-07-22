@@ -13,7 +13,9 @@ class Settings(BaseSettings):
     """Central settings object. Every value can be overridden via environment."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        # Look for .env at the repo root, then the backend folder, then the
+        # current directory, so the app starts correctly from any of them.
+        env_file=(BASE_DIR.parent / ".env", BASE_DIR / ".env", ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
     )
