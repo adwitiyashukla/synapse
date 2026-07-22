@@ -62,51 +62,52 @@ and latency in a built-in analytics dashboard.
 
 ```mermaid
 flowchart LR
-    subgraph Client["React SPA (Vite)"]
-        UI[Chat UI] --> SSE[SSE stream parser]
-        DOCS[Documents panel]
-        DASH[Analytics dashboard]
+    subgraph CLIENT["React SPA with Vite"]
+        UI["Chat UI + SSE stream parser"]
+        DOCS["Documents panel"]
+        DASH["Analytics dashboard"]
     end
 
-    subgraph API["FastAPI"]
-        AUTH[JWT auth]
-        CHAT[Chat endpoint SSE]
-        DOCAPI[Documents API]
-        ANALYTICS[Analytics API]
+    subgraph SERVER["FastAPI"]
+        AUTH["JWT auth"]
+        CHAT["Chat endpoint, SSE"]
+        DOCAPI["Documents API"]
+        ANALYTICS["Analytics API"]
     end
 
-    subgraph Agent["Agent orchestrator"]
-        LOOP[Tool-calling loop]
-        MEM[Rolling summary memory]
-        TOOLS[web_search / weather / calculator / datetime / search_documents]
+    subgraph AGENT["Agent orchestrator"]
+        LOOP["Tool-calling loop"]
+        MEM["Rolling summary memory"]
+        TOOLS["Tools: web search, weather, calculator, datetime, document search"]
     end
 
     subgraph RAG["Hybrid RAG"]
-        SPLIT[Recursive chunker]
-        EMB[Embeddings]
-        CHROMA[(ChromaDB)]
-        BM25[BM25 index]
-        RRF[RRF fusion + rerank]
+        SPLIT["Recursive chunker"]
+        EMB["Embeddings"]
+        CHROMA[("ChromaDB")]
+        BM25["BM25 index"]
+        RRF["RRF fusion + rerank"]
     end
 
-    subgraph LLM["Provider layer"]
-        OPENAI[OpenAI-compatible API]
-        PRICE[Pricing and usage tracking]
-    end
+    LLM["OpenAI-compatible LLM API"]
+    DB[("SQLite via async SQLAlchemy")]
 
-    SQLITE[(SQLite via async SQLAlchemy)]
-
-    UI --> CHAT --> LOOP
+    UI --> CHAT
+    DOCS --> DOCAPI
+    DASH --> ANALYTICS
+    CHAT --> LOOP
     LOOP --> TOOLS
+    LOOP --> MEM
+    LOOP --> LLM
     TOOLS --> RRF
     RRF --> CHROMA
     RRF --> BM25
-    DOCAPI --> SPLIT --> EMB --> CHROMA
-    LOOP --> OPENAI
-    CHAT --> PRICE --> SQLITE
-    AUTH --> SQLITE
-    ANALYTICS --> SQLITE
-    MEM --> SQLITE
+    DOCAPI --> SPLIT
+    SPLIT --> EMB
+    EMB --> CHROMA
+    AUTH --> DB
+    CHAT --> DB
+    ANALYTICS --> DB
 ```
 
 The full design rationale lives in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
