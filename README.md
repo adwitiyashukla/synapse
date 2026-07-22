@@ -17,6 +17,22 @@ and latency in a built-in analytics dashboard.
 
 ---
 
+## Screenshots
+
+| Agentic tool use in chat | Document Q&A with citations |
+|---|---|
+| ![Chat with autonomous weather tool call](docs/screenshots/chat-weather.png) | ![Multi-query RAG summary with cited sources](docs/screenshots/rag-citations.png) |
+
+| Knowledge base | Usage analytics dashboard |
+|---|---|
+| ![Document upload with chunking status](docs/screenshots/knowledge-base.png) | ![Token, cost and tool analytics](docs/screenshots/analytics.png) |
+
+| Home | Sign in |
+|---|---|
+| ![Suggestion cards on the home screen](docs/screenshots/home.png) | ![Login page](docs/screenshots/login.jpeg) |
+
+---
+
 ## Features
 
 **Agentic core**
