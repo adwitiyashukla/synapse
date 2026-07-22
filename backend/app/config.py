@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     )
     openai_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai/"
     chat_model: str = "gemini-3.5-flash"
-    utility_model: str = "gemini-2.5-flash-lite"
+    utility_model: str = "gemini-2.5-flash"
     embedding_model: str = "gemini-embedding-001"
     available_models: str = "gemini-3.5-flash,gemini-2.5-flash,gemini-2.5-flash-lite"
     max_agent_iterations: int = 6

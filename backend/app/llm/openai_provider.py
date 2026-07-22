@@ -103,6 +103,10 @@ class OpenAIProvider(LLMProvider):
         response = await self.client.embeddings.create(
             model=self.embedding_model, input=texts
         )
-        # The API preserves input order; sort defensively by index anyway.
-        items = sorted(response.data, key=lambda item: item.index)
+        # The API preserves input order. Sort by index only when every item
+        # actually has one; some providers (e.g. Gemini's compatibility
+        # layer) omit the index field.
+        items = list(response.data)
+        if all(getattr(item, "index", None) is not None for item in items):
+            items.sort(key=lambda item: item.index)
         return [item.embedding for item in items]
