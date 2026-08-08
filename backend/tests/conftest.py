@@ -104,6 +104,10 @@ async def fake_provider() -> AsyncIterator[FakeProvider]:
 
 @pytest.fixture
 async def client(fake_provider: FakeProvider) -> AsyncIterator[AsyncClient]:
+    # Drop pooled connections from the previous test before rebuilding the
+    # schema. A connection left open by a prior test would hold a SQLite lock
+    # and make DROP TABLE fail.
+    await engine.dispose()
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
@@ -114,6 +118,7 @@ async def client(fake_provider: FakeProvider) -> AsyncIterator[AsyncClient]:
     async with AsyncClient(transport=transport, base_url="http://test") as http:
         yield http
     set_vector_store(None)
+    await engine.dispose()
 
 
 async def register_and_login(client: AsyncClient, email: str = "adi@example.com") -> dict[str, str]:

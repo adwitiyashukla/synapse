@@ -1,6 +1,5 @@
 """Streaming chat endpoint (Server-Sent Events)."""
 
-import asyncio
 import json
 import logging
 import time
@@ -9,6 +8,7 @@ from collections.abc import AsyncIterator
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select
+from starlette.background import BackgroundTask
 
 from app.agent.memory import maybe_summarize
 from app.agent.orchestrator import run_agent
@@ -152,11 +152,10 @@ async def chat(
 
         yield _sse({"type": "done", "message_id": assistant_message.id})
 
-        # Compress old turns after responding; never blocks the reply.
-        asyncio.get_running_loop().create_task(
-            _summarize_in_background(session.id)
-        )
-
+    # Summarization runs after the response is fully sent, so it never delays
+    # the reply. Attaching it to the response (instead of firing a detached
+    # task) means the framework awaits it and its database connection is
+    # always released, rather than outliving the request.
     return StreamingResponse(
         event_stream(),
         media_type="text/event-stream",
@@ -165,4 +164,5 @@ async def chat(
             "Connection": "keep-alive",
             "X-Accel-Buffering": "no",
         },
+        background=BackgroundTask(_summarize_in_background, session.id),
     )
