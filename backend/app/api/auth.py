@@ -5,7 +5,6 @@ from sqlalchemy import func, select
 
 from app.api.deps import DB, CurrentUser, rate_limit_auth, rate_limit_demo_session
 from app.config import get_settings
-from app.demo import create_guest_user
 from app.core.security import (
     create_access_token,
     create_refresh_token,
@@ -13,6 +12,7 @@ from app.core.security import (
     hash_password,
     verify_password,
 )
+from app.demo import create_guest_user
 from app.models import User
 from app.schemas import (
     LoginRequest,
