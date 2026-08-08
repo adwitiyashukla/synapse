@@ -3,7 +3,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
 
-from app.api.deps import DB, CurrentUser, rate_limit_auth
+from app.api.deps import DB, CurrentUser, rate_limit_auth, rate_limit_demo_session
+from app.config import get_settings
+from app.demo import create_guest_user
 from app.core.security import (
     create_access_token,
     create_refresh_token,
@@ -80,6 +82,26 @@ async def refresh(body: RefreshRequest, db: DB) -> TokenPair:
             status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
         )
     return _issue_tokens(user.id)
+
+
+@router.post(
+    "/demo",
+    response_model=TokenPair,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(rate_limit_demo_session)],
+)
+async def demo_session(db: DB) -> TokenPair:
+    """One-click guest access for the public demo.
+
+    Creates an isolated throwaway account whose knowledge base is cloned from
+    the seeded sample document, so retrieval works from the first message.
+    """
+    if not get_settings().demo_mode:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Demo mode is disabled"
+        )
+    guest = await create_guest_user(db)
+    return _issue_tokens(guest.id)
 
 
 @router.get("/me", response_model=UserOut)

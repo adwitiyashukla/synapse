@@ -1,14 +1,38 @@
 import { useState } from "react";
-import { BrainCircuit, FileSearch, Gauge, Wrench } from "lucide-react";
+import { BrainCircuit, FileSearch, Gauge, Github, Sparkles, Wrench } from "lucide-react";
 import { api, setTokens } from "../lib/api.js";
 
-export default function AuthPage({ onAuthed }) {
+export default function AuthPage({ onAuthed, appInfo }) {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [demoBusy, setDemoBusy] = useState(false);
+  const isDemo = Boolean(appInfo?.demo_mode);
+
+  async function startDemo() {
+    setError("");
+    setDemoBusy(true);
+    try {
+      const response = await fetch("/api/auth/demo", { method: "POST" });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          typeof data.detail === "string"
+            ? data.detail
+            : "Could not start the demo. Please try again."
+        );
+      }
+      setTokens(data);
+      onAuthed(await api("/api/auth/me"));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setDemoBusy(false);
+    }
+  }
 
   async function submit(event) {
     event.preventDefault();
@@ -83,13 +107,46 @@ export default function AuthPage({ onAuthed }) {
 
       <div className="auth-form-side">
         <form className="auth-card fade-in" onSubmit={submit}>
-          <h2>{mode === "login" ? "Welcome back" : "Create your account"}</h2>
-          <p className="sub">
-            {mode === "login"
-              ? "Sign in to continue your conversations."
-              : "A minute from now you will be chatting with Synapse."}
-          </p>
-          {error && <div className="auth-error">{error}</div>}
+          {isDemo ? (
+            <>
+              <h2>Try the live demo</h2>
+              <p className="sub">
+                One click, no signup. You get a private sandbox preloaded with a
+                sample report so document retrieval works immediately.
+              </p>
+              {error && <div className="auth-error">{error}</div>}
+              <button
+                type="button"
+                className="btn primary demo-cta"
+                onClick={startDemo}
+                disabled={demoBusy}
+              >
+                <Sparkles size={17} />
+                {demoBusy ? "Preparing your sandbox..." : "Launch demo"}
+              </button>
+              <ul className="demo-points">
+                <li>Ask about the weather or search the web, the agent picks its own tools</li>
+                <li>Ask about the preloaded report to see hybrid RAG with citations</li>
+                <li>Upload your own PDF, or open Analytics for live token and cost metrics</li>
+              </ul>
+              {appInfo?.repo_url && (
+                <a className="repo-link" href={appInfo.repo_url} target="_blank" rel="noreferrer">
+                  <Github size={15} /> View the source on GitHub
+                </a>
+              )}
+              <div className="auth-divider"><span>or use an account</span></div>
+            </>
+          ) : (
+            <>
+              <h2>{mode === "login" ? "Welcome back" : "Create your account"}</h2>
+              <p className="sub">
+                {mode === "login"
+                  ? "Sign in to continue your conversations."
+                  : "A minute from now you will be chatting with Synapse."}
+              </p>
+              {error && <div className="auth-error">{error}</div>}
+            </>
+          )}
           {mode === "register" && (
             <div className="field">
               <label htmlFor="username">Name</label>

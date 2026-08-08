@@ -75,6 +75,17 @@ class Settings(BaseSettings):
     rate_limit_chat: int = 40
     rate_limit_window_seconds: int = 60
 
+    # Public demo mode (used by the Hugging Face Space deployment).
+    # Enables one-click guest sessions and tightens every abuse surface so a
+    # single shared API key can safely serve anonymous visitors.
+    demo_mode: bool = False
+    demo_banner_repo_url: str = "https://github.com/adwitiyashukla/synapse"
+    demo_sessions_per_hour: int = 5  # guest sign-ins per IP
+    demo_messages_per_hour: int = 12  # chat messages per IP
+    demo_daily_message_cap: int = 200  # across all visitors, protects the key
+    demo_max_upload_mb: int = 3
+    demo_seed_dir: str = str(BASE_DIR / "demo_assets")
+
     # CORS
     cors_origins: str = "http://localhost:5173,http://localhost:8000"
 

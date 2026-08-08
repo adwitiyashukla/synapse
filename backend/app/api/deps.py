@@ -7,7 +7,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
-from app.core.ratelimit import SlidingWindowLimiter, enforce
+from app.core.quota import DailyQuota
+from app.core.ratelimit import SlidingWindowLimiter, client_key, enforce
 from app.core.security import decode_token
 from app.database import get_db
 from app.models import ChatSession, User
@@ -15,12 +16,19 @@ from app.models import ChatSession, User
 settings = get_settings()
 bearer_scheme = HTTPBearer(auto_error=False)
 
+HOUR = 3600
+
 auth_limiter = SlidingWindowLimiter(
     settings.rate_limit_auth, settings.rate_limit_window_seconds
 )
 chat_limiter = SlidingWindowLimiter(
     settings.rate_limit_chat, settings.rate_limit_window_seconds
 )
+
+# Public demo guards. Only enforced when DEMO_MODE is on.
+demo_session_limiter = SlidingWindowLimiter(settings.demo_sessions_per_hour, HOUR)
+demo_chat_limiter = SlidingWindowLimiter(settings.demo_messages_per_hour, HOUR)
+demo_daily_quota = DailyQuota(settings.demo_daily_message_cap)
 
 
 async def get_current_user(
@@ -71,3 +79,29 @@ def rate_limit_auth(request: Request) -> None:
 
 def rate_limit_chat(request: Request) -> None:
     enforce(chat_limiter, request)
+    if not settings.demo_mode:
+        return
+    if not demo_chat_limiter.check(client_key(request)):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=(
+                f"Demo limit reached: {settings.demo_messages_per_hour} messages "
+                "per hour. Run Synapse locally from the GitHub repo for unlimited use."
+            ),
+        )
+    if not demo_daily_quota.try_consume():
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=(
+                "The shared demo has reached its daily message budget. "
+                "Please try again tomorrow, or run Synapse locally with your own key."
+            ),
+        )
+
+
+def rate_limit_demo_session(request: Request) -> None:
+    if not demo_session_limiter.check(client_key(request)):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many demo sessions from this address. Please try again later.",
+        )

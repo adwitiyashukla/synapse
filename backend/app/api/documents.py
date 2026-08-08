@@ -37,11 +37,13 @@ async def upload_document(
             + ", ".join(sorted(ALLOWED_EXTENSIONS)),
         )
     data = await file.read()
-    max_bytes = settings.max_upload_mb * 1024 * 1024
-    if len(data) > max_bytes:
+    limit_mb = (
+        settings.demo_max_upload_mb if settings.demo_mode else settings.max_upload_mb
+    )
+    if len(data) > limit_mb * 1024 * 1024:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"File too large. Maximum size is {settings.max_upload_mb} MB.",
+            detail=f"File too large. Maximum size is {limit_mb} MB.",
         )
     if not data:
         raise HTTPException(

@@ -10,6 +10,27 @@ const SUGGESTIONS = [
   { title: "Ask your documents", prompt: "Summarize the key points from my uploaded documents." },
 ];
 
+// In the public demo a sample report is preloaded, so the prompts point at it
+// and show retrieval with citations on the very first message.
+const DEMO_SUGGESTIONS = [
+  {
+    title: "Query the preloaded report",
+    prompt: "What was Northwind's 2026 revenue and gross margin?",
+  },
+  {
+    title: "Multi-step retrieval",
+    prompt: "Summarize the autonomy research section and the three key results.",
+  },
+  {
+    title: "Live weather tool",
+    prompt: "What's the weather in Amsterdam right now?",
+  },
+  {
+    title: "Precise arithmetic",
+    prompt: "What is (1.07 ** 30) * 25000? Explain what this means for compound interest.",
+  },
+];
+
 export default function ChatView({
   appInfo,
   sessionId,
@@ -26,13 +47,22 @@ export default function ChatView({
   const abortRef = useRef(null);
   const scrollRef = useRef(null);
   const textareaRef = useRef(null);
+  // Session ids this view created itself while sending. Reloading history for
+  // those would wipe the reply that is still streaming into local state.
+  const selfCreatedRef = useRef(null);
 
   const effectiveModel =
     model || session?.model || appInfo?.default_model || "";
+  const suggestions = appInfo?.demo_mode ? DEMO_SUGGESTIONS : SUGGESTIONS;
 
   useEffect(() => {
     if (!sessionId) {
       setMessages([]);
+      return;
+    }
+    if (selfCreatedRef.current === sessionId) {
+      // Skip exactly once, for the transition that created this session.
+      selfCreatedRef.current = null;
       return;
     }
     api(`/api/sessions/${sessionId}/messages`)
@@ -107,6 +137,7 @@ export default function ChatView({
 
     try {
       const id = await ensureSession();
+      selfCreatedRef.current = id;
       await streamChat(
         id,
         { content, model: effectiveModel || undefined },
@@ -203,7 +234,7 @@ export default function ChatView({
               sources cited.
             </p>
             <div className="suggestions">
-              {SUGGESTIONS.map((s) => (
+              {suggestions.map((s) => (
                 <button
                   key={s.title}
                   className="suggestion-card"

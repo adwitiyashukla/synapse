@@ -2,6 +2,13 @@
 
 **An agentic AI assistant platform with autonomous tool use, hybrid RAG, and real-time streaming.**
 
+### [▶ Try the live demo on Hugging Face](https://huggingface.co/spaces/adwitiyashukla/synapse)
+
+No signup and no API key: one click gives you a private sandbox with a sample
+document already indexed, so you can watch the agent choose tools and cite
+sources in real time.
+
+[![Live Demo](https://img.shields.io/badge/🤗%20Live%20Demo-Hugging%20Face%20Space-FFD21E?labelColor=555)](https://huggingface.co/spaces/adwitiyashukla/synapse)
 ![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
@@ -267,6 +274,20 @@ synapse/
 ```
 
 ---
+
+## Deployment
+
+The repo ships two deployment paths:
+
+| Target | Files | Notes |
+|---|---|---|
+| Local or self-hosted | `Dockerfile`, `docker-compose.yml` | Full app, your own key, no usage limits |
+| Hugging Face Space | `deploy/huggingface/` | Public demo profile: one-click guest sessions, seeded sample document, per-visitor rate limits and a daily cost ceiling |
+
+Demo mode is a runtime flag (`DEMO_MODE=true`). It adds a guest session
+endpoint that provisions an isolated throwaway account and clones the seeded
+knowledge base at the database layer, so a visitor gets working retrieval
+instantly without a single embedding API call.
 
 ## Roadmap
 

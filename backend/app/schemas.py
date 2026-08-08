@@ -133,3 +133,6 @@ class AppInfo(BaseModel):
     default_model: str
     available_models: list[str]
     rag_enabled: bool
+    demo_mode: bool = False
+    demo_messages_per_hour: int | None = None
+    repo_url: str | None = None

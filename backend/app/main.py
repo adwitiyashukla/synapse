@@ -1,5 +1,6 @@
 """Synapse application entry point."""
 
+import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -20,6 +21,16 @@ configure_logging(settings.debug)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    if settings.demo_mode:
+        from app.database import AsyncSessionLocal
+        from app.demo import purge_stale_guests, seed_demo_content
+
+        async with AsyncSessionLocal() as db:
+            try:
+                await purge_stale_guests(db)
+                await seed_demo_content(db)
+            except Exception:  # never block startup on demo seeding
+                logging.getLogger("synapse").exception("demo seeding failed")
     yield
 
 
@@ -60,6 +71,11 @@ async def info() -> AppInfo:
         default_model=settings.chat_model,
         available_models=settings.model_list,
         rag_enabled=True,
+        demo_mode=settings.demo_mode,
+        demo_messages_per_hour=(
+            settings.demo_messages_per_hour if settings.demo_mode else None
+        ),
+        repo_url=settings.demo_banner_repo_url if settings.demo_mode else None,
     )
 
 

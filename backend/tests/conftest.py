@@ -57,6 +57,7 @@ class FakeProvider(LLMProvider):
     def __init__(self, turns: list[dict[str, Any]] | None = None) -> None:
         self.turns = turns or [{"text": "Hello from the fake model."}]
         self.calls: list[list[dict[str, Any]]] = []
+        self.embed_calls: list[list[str]] = []
         self.complete_response = "Fake title"
 
     async def stream_chat(
@@ -89,6 +90,7 @@ class FakeProvider(LLMProvider):
         return self.complete_response
 
     async def embed(self, texts: list[str]) -> list[list[float]]:
+        self.embed_calls.append(list(texts))
         return [deterministic_embedding(text) for text in texts]
 
 

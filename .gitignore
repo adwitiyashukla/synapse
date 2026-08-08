@@ -29,3 +29,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Local clone of the Hugging Face Space repository
+hf-space/

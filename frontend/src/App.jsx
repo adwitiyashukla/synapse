@@ -4,6 +4,7 @@ import Sidebar from "./components/Sidebar.jsx";
 import ChatView from "./components/ChatView.jsx";
 import AnalyticsView from "./components/AnalyticsView.jsx";
 import DocumentsPanel from "./components/DocumentsPanel.jsx";
+import DemoBanner from "./components/DemoBanner.jsx";
 import { api, getTokens, setTokens, setUnauthorizedHandler } from "./lib/api.js";
 
 export default function App() {
@@ -93,7 +94,7 @@ export default function App() {
   }
 
   if (!user) {
-    return <AuthPage onAuthed={setUser} />;
+    return <AuthPage onAuthed={setUser} appInfo={appInfo} />;
   }
 
   return (
@@ -115,11 +116,11 @@ export default function App() {
         onLogout={logout}
       />
       <main className="main-column">
+        {appInfo?.demo_mode && <DemoBanner appInfo={appInfo} />}
         {view === "analytics" ? (
           <AnalyticsView />
         ) : (
           <ChatView
-            key={activeSessionId || "none"}
             appInfo={appInfo}
             sessionId={activeSessionId}
             session={sessions.find((s) => s.id === activeSessionId) || null}
