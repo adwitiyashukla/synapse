@@ -44,18 +44,42 @@ laid out like this:
 └── frontend/
 ```
 
-Clone the Space, copy the files in, then push:
+Clone the Space next to the project:
 
 ```bash
-git clone https://huggingface.co/spaces/<user>/synapse
-cd synapse
-# copy backend/, frontend/, .dockerignore from the project
-# copy deploy/huggingface/Dockerfile  -> ./Dockerfile
-# copy deploy/huggingface/README.md   -> ./README.md
+git clone https://huggingface.co/spaces/<user>/synapse hf-space
+```
+
+Copy the application in. On Windows, from the project root:
+
+```bat
+robocopy backend hf-space\backend /MIR /XD data __pycache__ .pytest_cache .ruff_cache static .venv venv
+robocopy frontend hf-space\frontend /MIR /XD node_modules dist
+copy /Y deploy\huggingface\Dockerfile hf-space\Dockerfile
+copy /Y deploy\huggingface\README.md hf-space\README.md
+```
+
+On macOS or Linux:
+
+```bash
+rsync -a --delete --exclude data --exclude __pycache__ --exclude .pytest_cache \
+  --exclude .ruff_cache --exclude static backend/ hf-space/backend/
+rsync -a --delete --exclude node_modules --exclude dist frontend/ hf-space/frontend/
+cp deploy/huggingface/Dockerfile hf-space/Dockerfile
+cp deploy/huggingface/README.md hf-space/README.md
+```
+
+Then publish:
+
+```bash
+cd hf-space
 git add -A
 git commit -m "Deploy Synapse demo"
 git push
 ```
+
+Re-run the same copy commands and push again whenever you want to ship an
+update to the Space.
 
 The first build takes several minutes (frontend build plus Python
 dependencies). Watch progress in the Space **Logs** tab.
