@@ -91,6 +91,41 @@ dependencies). Watch progress in the Space **Logs** tab.
 - The seeded sample document is listed under **Documents** as `ready`
 - Asking about the sample report returns an answer with citations
 
+## 5. Keep the Space awake
+
+Spaces on the free `cpu-basic` tier are suspended after 48 hours without
+traffic. You can confirm the exact timer for any Space from the Hub API:
+
+```bash
+curl -s https://huggingface.co/api/spaces/<user>/synapse | python -m json.tool
+# runtime.stage    -> RUNNING | SLEEPING | BUILDING
+# runtime.gcTimeout -> 172800 seconds, i.e. 48 hours
+```
+
+A sleeping Space is not broken: the next visitor restarts it automatically.
+The image is already built, so this is a container boot rather than a rebuild,
+but the visitor still waits roughly a minute. For a public portfolio demo that
+first impression matters, so `.github/workflows/keepalive.yml` pings
+`/api/health` every six hours and the Space never reaches the idle threshold.
+
+`/api/health` is the right target because it is outside the rate limiters,
+touches no database and makes no model calls, so the ping costs nothing and
+never eats into the demo quota. The workflow retries for up to four minutes
+before failing, which covers a cold start, and a failed run emails you, so it
+doubles as uptime monitoring.
+
+Two things to know about scheduled workflows on GitHub:
+
+- Runs can be delayed under load and are occasionally skipped. Harmless here,
+  since four runs a day leave a lot of slack inside a 48 hour window.
+- GitHub disables scheduled workflows in a public repository after 60 days with
+  no repository activity. It warns you by email first, and the Actions tab has
+  a one-click re-enable.
+
+If you would rather not rely on that, upgrade the Space to paid hardware and
+set **Settings -> Sleep time -> never**, which is the officially supported way
+to stay always-on.
+
 ## Runtime configuration
 
 Everything below is set in the Dockerfile and can be overridden with Space
@@ -109,7 +144,8 @@ variables.
 ## Notes
 
 - Space disk is ephemeral. The database resets when the container restarts and
-  the sample document is re-seeded automatically on boot.
+  the sample document is re-seeded automatically on boot. The keepalive above
+  makes restarts rare, so demo conversations usually survive for days.
 - Guest accounts older than 12 hours are purged at startup.
 - Seeding embeds the sample document once per cold start. Guest sign-ins clone
   those stored embeddings at the database layer, so they cost nothing.

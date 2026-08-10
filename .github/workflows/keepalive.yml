@@ -1,0 +1,67 @@
+name: Keepalive
+
+# The public demo runs on Hugging Face cpu-basic hardware, which suspends a
+# Space after 48 hours without traffic. This workflow pings the health endpoint
+# every six hours so the Space stays warm and a visitor never lands on a cold
+# start. The ping is deliberately cheap: /api/health touches no database and
+# makes no model calls.
+
+on:
+  schedule:
+    # 00:00, 06:00, 12:00 and 18:00 UTC. GitHub may delay scheduled runs under
+    # load, which is harmless here: four runs a day give plenty of slack inside
+    # a 48 hour idle window.
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keepalive
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    name: Ping the Hugging Face Space
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SPACE_URL: https://adwitiyashukla-synapse.hf.space
+    steps:
+      - name: Wake the Space and wait for a healthy response
+        run: |
+          set -uo pipefail
+
+          # A sleeping Space answers with a holding page while its container
+          # boots, so a single request is not enough to prove health. Retry for
+          # up to four minutes before declaring the demo down.
+          for attempt in $(seq 1 12); do
+            body=$(curl -sS --max-time 30 "${SPACE_URL}/api/health" || true)
+
+            if printf '%s' "$body" | grep -q '"status"[[:space:]]*:[[:space:]]*"ok"'; then
+              echo "Healthy on attempt ${attempt}: ${body}"
+              {
+                echo "### Space is awake"
+                echo ""
+                echo "Healthy after ${attempt} attempt(s)."
+                echo ""
+                echo '```json'
+                echo "$body"
+                echo '```'
+              } >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+
+            echo "Attempt ${attempt}: no healthy response yet, the container is probably still booting."
+            sleep 20
+          done
+
+          echo "::error::${SPACE_URL} did not return a healthy response within four minutes."
+          {
+            echo "### Space did not come up"
+            echo ""
+            echo "No healthy response from \`${SPACE_URL}/api/health\` after 12 attempts."
+            echo "Check the Space logs at https://huggingface.co/spaces/adwitiyashukla/synapse."
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit 1
