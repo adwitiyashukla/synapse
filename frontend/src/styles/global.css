@@ -40,7 +40,6 @@ input, textarea, select { font-family: inherit; }
 ::-webkit-scrollbar-thumb { background: #2a3350; border-radius: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 
-/* ---------------------------------------------------------------- layout */
 .app-shell { display: flex; height: 100%; overflow: hidden; }
 
 .main-column {
@@ -54,7 +53,6 @@ input, textarea, select { font-family: inherit; }
     var(--bg);
 }
 
-/* ---------------------------------------------------------------- sidebar */
 .sidebar {
   width: var(--sidebar-width);
   background: var(--bg-soft);
@@ -176,7 +174,6 @@ input, textarea, select { font-family: inherit; }
   flex-shrink: 0;
 }
 
-/* ---------------------------------------------------------------- topbar */
 .topbar {
   display: flex;
   align-items: center;
@@ -207,7 +204,6 @@ input, textarea, select { font-family: inherit; }
 }
 .model-select:focus { border-color: var(--accent); }
 
-/* ---------------------------------------------------------------- chat */
 .chat-scroll { flex: 1; overflow-y: auto; scroll-behavior: smooth; }
 .chat-inner { max-width: 820px; margin: 0 auto; padding: 28px 20px 12px; }
 
@@ -307,8 +303,13 @@ input, textarea, select { font-family: inherit; }
 .message-content pre code { background: none; border: none; padding: 0; font-size: 13px; }
 
 .streaming-cursor::after {
-  content: "▍";
-  color: var(--accent);
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 1em;
+  margin-left: 1px;
+  vertical-align: text-bottom;
+  background: var(--accent);
   animation: blink 1s step-end infinite;
 }
 @keyframes blink { 50% { opacity: 0; } }
@@ -376,7 +377,6 @@ input, textarea, select { font-family: inherit; }
   margin-bottom: 16px;
 }
 
-/* ---------------------------------------------------------------- composer */
 .composer-wrap { padding: 8px 20px 18px; }
 .composer {
   max-width: 820px;
@@ -430,7 +430,6 @@ input, textarea, select { font-family: inherit; }
   color: #5d6478;
 }
 
-/* ---------------------------------------------------------------- buttons */
 .icon-btn {
   background: none;
   border: none;
@@ -462,7 +461,6 @@ input, textarea, select { font-family: inherit; }
 }
 .btn.primary:disabled { opacity: 0.5; cursor: default; }
 
-/* ---------------------------------------------------------------- auth */
 .auth-page {
   height: 100%;
   display: grid;
@@ -530,7 +528,6 @@ input, textarea, select { font-family: inherit; }
 .auth-switch { margin-top: 18px; text-align: center; font-size: 13.5px; color: var(--muted); }
 .auth-switch button { background: none; border: none; color: var(--accent-strong); font-weight: 600; font-size: 13.5px; }
 
-/* ---------------------------------------------------------------- demo */
 .demo-banner {
   display: flex;
   align-items: center;
@@ -626,7 +623,6 @@ input, textarea, select { font-family: inherit; }
   background: var(--border);
 }
 
-/* ---------------------------------------------------------------- documents */
 .drawer-backdrop {
   position: fixed;
   inset: 0;
@@ -690,7 +686,6 @@ input, textarea, select { font-family: inherit; }
 .badge.processing { background: rgba(255, 196, 107, 0.12); color: var(--warning); }
 .badge.failed { background: rgba(255, 107, 122, 0.12); color: var(--danger); }
 
-/* ---------------------------------------------------------------- analytics */
 .analytics-scroll { flex: 1; overflow-y: auto; }
 .analytics-inner { max-width: 1020px; margin: 0 auto; padding: 28px 20px 40px; }
 .analytics-inner h2 { margin: 0 0 4px; }
@@ -731,7 +726,6 @@ input, textarea, select { font-family: inherit; }
 
 .centered-note { color: var(--muted); text-align: center; padding: 30px 0; font-size: 13.5px; }
 
-/* ---------------------------------------------------------------- misc */
 .fade-in { animation: fade-in 0.25s ease-out; }
 @keyframes fade-in { from { opacity: 0; transform: translateY(4px); } }
 

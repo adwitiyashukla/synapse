@@ -1,5 +1,3 @@
-"""Streaming chat endpoint (Server-Sent Events)."""
-
 import json
 import logging
 import time
@@ -152,10 +150,6 @@ async def chat(
 
         yield _sse({"type": "done", "message_id": assistant_message.id})
 
-    # Summarization runs after the response is fully sent, so it never delays
-    # the reply. Attaching it to the response (instead of firing a detached
-    # task) means the framework awaits it and its database connection is
-    # always released, rather than outliving the request.
     return StreamingResponse(
         event_stream(),
         media_type="text/event-stream",

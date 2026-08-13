@@ -116,8 +116,8 @@ export default function DocumentsPanel({ onClose }) {
                 <div className="doc-name" title={doc.filename}>{doc.filename}</div>
                 <div className="doc-sub">
                   {formatSize(doc.size_bytes)}
-                  {doc.status === "ready" && ` · ${doc.chunk_count} chunks`}
-                  {doc.status === "failed" && doc.error ? ` · ${doc.error.slice(0, 80)}` : ""}
+                  {doc.status === "ready" && `, ${doc.chunk_count} chunks`}
+                  {doc.status === "failed" && doc.error ? `, ${doc.error.slice(0, 80)}` : ""}
                 </div>
               </div>
               <span className={"badge " + doc.status}>{doc.status}</span>

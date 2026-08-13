@@ -1,8 +1,6 @@
-# Environment
 .env
 *.env.local
 
-# Python
 __pycache__/
 *.py[cod]
 .pytest_cache/
@@ -10,25 +8,20 @@ __pycache__/
 .venv/
 venv/
 
-# Data and databases
 backend/data/
 *.db
 *.sqlite3
 
-# Node
 node_modules/
 frontend/dist/
 backend/static/
 npm-debug.log*
 
-# Editors and OS
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
 
-# Logs
 *.log
 
-# Local clone of the Hugging Face Space repository
 hf-space/

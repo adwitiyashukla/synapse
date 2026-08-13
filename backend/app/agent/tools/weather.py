@@ -1,5 +1,3 @@
-"""Weather tool backed by the free Open-Meteo API. No API key required."""
-
 import json
 
 import httpx
@@ -21,7 +19,6 @@ WEATHER_CODES = {
 
 
 async def run(location: str) -> str:
-    """Return current weather and a short forecast for a location as JSON."""
     try:
         async with httpx.AsyncClient(timeout=15) as client:
             geo = await client.get(

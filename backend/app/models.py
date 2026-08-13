@@ -1,5 +1,3 @@
-"""SQLAlchemy ORM models."""
-
 import uuid
 from datetime import datetime, timezone
 
@@ -71,7 +69,7 @@ class Message(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     session_id: Mapped[str] = mapped_column(ForeignKey("chat_sessions.id"), index=True)
-    role: Mapped[str] = mapped_column(String(20))  # user | assistant
+    role: Mapped[str] = mapped_column(String(20))
     content: Mapped[str] = mapped_column(Text)
     tool_calls_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     citations_json: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -93,7 +91,7 @@ class Document(Base):
     filename: Mapped[str] = mapped_column(String(255))
     content_type: Mapped[str] = mapped_column(String(120))
     size_bytes: Mapped[int] = mapped_column(Integer, default=0)
-    status: Mapped[str] = mapped_column(String(20), default="processing")  # processing | ready | failed
+    status: Mapped[str] = mapped_column(String(20), default="processing")
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
     chunk_count: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

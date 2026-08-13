@@ -1,5 +1,3 @@
-"""Tool registry: JSON schemas advertised to the model plus dispatch logic."""
-
 import json
 import logging
 from typing import Any
@@ -117,7 +115,6 @@ def build_tool_schemas(include_documents: bool) -> list[dict[str, Any]]:
 async def dispatch(
     name: str, raw_arguments: str, db: AsyncSession, user_id: int
 ) -> str:
-    """Execute a tool call and always return a string result for the model."""
     try:
         args = json.loads(raw_arguments) if raw_arguments else {}
         if not isinstance(args, dict):

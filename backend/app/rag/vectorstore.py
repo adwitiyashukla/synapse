@@ -1,10 +1,3 @@
-"""Vector store abstraction with two implementations.
-
-ChromaVectorStore: persistent HNSW index via ChromaDB (default).
-MemoryVectorStore: exact cosine search over embeddings stored in SQLite,
-used as a zero-dependency fallback and in tests.
-"""
-
 import logging
 from abc import ABC, abstractmethod
 
@@ -27,8 +20,7 @@ class VectorStore(ABC):
     @abstractmethod
     def query(
         self, embedding: list[float], user_id: int, top_k: int
-    ) -> list[tuple[str, float]]:
-        """Return (chunk_id, similarity score in [0, 1]) pairs, best first."""
+    ) -> list[tuple[str, float]]: ...
 
     @abstractmethod
     def delete_document(self, document_id: str) -> None: ...
@@ -58,7 +50,6 @@ class ChromaVectorStore(VectorStore):
         )
         ids = result.get("ids", [[]])[0]
         distances = result.get("distances", [[]])[0]
-        # Cosine distance -> similarity
         return [(cid, 1.0 - dist) for cid, dist in zip(ids, distances, strict=True)]
 
     def delete_document(self, document_id: str) -> None:
@@ -66,12 +57,6 @@ class ChromaVectorStore(VectorStore):
 
 
 class MemoryVectorStore(VectorStore):
-    """Exact search over embeddings kept in process memory.
-
-    Embeddings are also persisted on the Chunk rows by the ingest pipeline,
-    so this store can be rebuilt lazily after a restart.
-    """
-
     def __init__(self) -> None:
         self._vectors: dict[str, np.ndarray] = {}
         self._meta: dict[str, dict] = {}
@@ -120,7 +105,7 @@ def get_vector_store() -> VectorStore:
         if settings.vector_store == "chroma":
             try:
                 _store = ChromaVectorStore(settings.chroma_dir)
-            except Exception as exc:  # pragma: no cover
+            except Exception as exc:
                 logger.warning("ChromaDB unavailable (%s); using in-memory store", exc)
                 _store = MemoryVectorStore()
         else:

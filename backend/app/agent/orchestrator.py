@@ -1,10 +1,3 @@
-"""Agent orchestrator: the tool-calling loop at the heart of Synapse.
-
-Streams model output while transparently executing tool calls, then yields
-a final aggregate event with usage, tool activity and citations so the API
-layer can persist everything.
-"""
-
 import asyncio
 import json
 import logging
@@ -59,7 +52,6 @@ async def run_agent(
     use_rag: bool,
     has_documents: bool,
 ) -> AsyncIterator[dict[str, Any]]:
-    """Yield streaming events, ending with a single 'final' aggregate event."""
     settings = get_settings()
     provider = get_provider()
 
@@ -97,7 +89,7 @@ async def run_agent(
             final_text_parts.append(round_text)
 
         if not pending_calls:
-            break  # the model produced its final answer
+            break
 
         assistant_message: dict[str, Any] = {
             "role": "assistant",
@@ -111,8 +103,6 @@ async def run_agent(
                         "arguments": call.arguments,
                         **call.function_extra,
                     },
-                    # Echo provider-specific fields (e.g. Gemini thought
-                    # signatures) exactly as they were received.
                     **call.extra,
                 }
                 for call in pending_calls

@@ -1,5 +1,3 @@
-"""Chat streaming tests using the scripted fake provider."""
-
 import json
 
 from httpx import AsyncClient
@@ -48,7 +46,6 @@ async def test_simple_chat_stream(
     title_event = next(e for e in events if e["type"] == "title")
     assert title_event["title"] == "Fake title"
 
-    # Both messages persisted
     messages = (
         await client.get(f"/api/sessions/{session_id}/messages", headers=headers)
     ).json()
@@ -77,11 +74,9 @@ async def test_chat_with_tool_call(
     assert tool_end["name"] == "calculator"
     assert "42" in tool_end["result_preview"]
 
-    # Tool result was sent back to the model on the second round
     second_call_messages = fake_provider.calls[1]
     assert any(m.get("role") == "tool" and "42" in m["content"] for m in second_call_messages)
 
-    # Tool usage persisted on the assistant message
     messages = (
         await client.get(f"/api/sessions/{session_id}/messages", headers=headers)
     ).json()
@@ -92,8 +87,6 @@ async def test_chat_with_tool_call(
 async def test_provider_extra_fields_are_echoed_back(
     client: AsyncClient, fake_provider: FakeProvider
 ) -> None:
-    """Gemini attaches thought signatures to tool calls; they must be resent
-    verbatim on the next round or the API rejects the request."""
     signature = {"extra_content": {"google": {"thought_signature": "sig-abc-123"}}}
     fake_provider.turns = [
         {"tool_calls": [("calculator", '{"expression": "1+1"}', signature)]},

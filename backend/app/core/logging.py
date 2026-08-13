@@ -1,5 +1,3 @@
-"""Structured JSON logging with request context."""
-
 import json
 import logging
 import sys
@@ -11,8 +9,6 @@ from fastapi import Request, Response
 
 
 class JsonFormatter(logging.Formatter):
-    """Format log records as single-line JSON objects."""
-
     def format(self, record: logging.LogRecord) -> str:
         payload = {
             "ts": self.formatTime(record, "%Y-%m-%dT%H:%M:%S%z"),
@@ -35,7 +31,6 @@ def configure_logging(debug: bool = False) -> None:
     root = logging.getLogger()
     root.handlers = [handler]
     root.setLevel(logging.DEBUG if debug else logging.INFO)
-    # Quiet noisy third-party loggers
     for name in ("httpx", "httpcore", "chromadb", "uvicorn.access"):
         logging.getLogger(name).setLevel(logging.WARNING)
 
@@ -46,7 +41,6 @@ logger = logging.getLogger("synapse")
 async def request_logging_middleware(
     request: Request, call_next: Callable[[Request], Awaitable[Response]]
 ) -> Response:
-    """Log every request with a correlation id and duration."""
     request_id = uuid.uuid4().hex[:12]
     request.state.request_id = request_id
     start = time.perf_counter()

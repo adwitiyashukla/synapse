@@ -1,5 +1,3 @@
-"""Chat session CRUD endpoints."""
-
 from fastapi import APIRouter, Depends, status
 from sqlalchemy import select
 

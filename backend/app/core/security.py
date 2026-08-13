@@ -1,5 +1,3 @@
-"""Password hashing and JWT token helpers."""
-
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -46,7 +44,6 @@ def create_refresh_token(user_id: int) -> str:
 
 
 def decode_token(token: str, expected_type: str) -> int | None:
-    """Return the user id encoded in the token, or None if invalid."""
     try:
         payload = jwt.decode(
             token, settings.secret_key, algorithms=[settings.jwt_algorithm]

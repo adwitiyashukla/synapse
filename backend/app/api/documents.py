@@ -1,5 +1,3 @@
-"""Document upload and management endpoints."""
-
 from fastapi import APIRouter, HTTPException, UploadFile, status
 from sqlalchemy import select
 
@@ -61,8 +59,6 @@ async def upload_document(
     await db.commit()
     await db.refresh(document)
 
-    # Ingest synchronously so the client gets the definitive status back.
-    # Extraction and embedding for a 10 MB cap completes in a few seconds.
     await ingest_document(db, document, data)
     await db.refresh(document)
     return DocumentOut.model_validate(document)

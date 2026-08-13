@@ -13,7 +13,7 @@ export default function App() {
   const [appInfo, setAppInfo] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [activeSessionId, setActiveSessionId] = useState(null);
-  const [view, setView] = useState("chat"); // chat | analytics
+  const [view, setView] = useState("chat");
   const [docsOpen, setDocsOpen] = useState(false);
 
   const logout = useCallback(() => {
@@ -30,15 +30,11 @@ export default function App() {
       try {
         const info = await fetch("/api/info").then((r) => r.json());
         setAppInfo(info);
-      } catch {
-        /* backend not up yet */
-      }
+      } catch {}
       if (getTokens()) {
         try {
           setUser(await api("/api/auth/me"));
-        } catch {
-          /* token invalid, stay logged out */
-        }
+        } catch {}
       }
       setBooting(false);
     })();

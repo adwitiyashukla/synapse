@@ -1,5 +1,3 @@
-"""Text extraction from uploaded files (PDF, DOCX, TXT, MD)."""
-
 import io
 
 ALLOWED_EXTENSIONS = {".pdf", ".docx", ".txt", ".md"}
@@ -10,7 +8,6 @@ class ExtractionError(Exception):
 
 
 def extract_text(filename: str, data: bytes) -> str:
-    """Extract plain text from a file based on its extension."""
     lowered = filename.lower()
     if lowered.endswith(".pdf"):
         return _extract_pdf(data)

@@ -1,5 +1,3 @@
-"""Shared FastAPI dependencies."""
-
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, Request, status
@@ -25,7 +23,6 @@ chat_limiter = SlidingWindowLimiter(
     settings.rate_limit_chat, settings.rate_limit_window_seconds
 )
 
-# Public demo guards. Only enforced when DEMO_MODE is on.
 demo_session_limiter = SlidingWindowLimiter(settings.demo_sessions_per_hour, HOUR)
 demo_chat_limiter = SlidingWindowLimiter(settings.demo_messages_per_hour, HOUR)
 demo_daily_quota = DailyQuota(settings.demo_daily_message_cap)

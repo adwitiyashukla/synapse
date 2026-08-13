@@ -1,5 +1,3 @@
-// API client: token handling, automatic refresh, JSON requests and SSE streaming.
-
 const TOKEN_KEY = "synapse_tokens";
 
 export function getTokens() {
@@ -59,16 +57,13 @@ export async function api(path, options = {}) {
     try {
       const body = await response.json();
       if (body.detail) detail = typeof body.detail === "string" ? body.detail : detail;
-    } catch {
-      /* keep default detail */
-    }
+    } catch {}
     throw new Error(detail);
   }
   if (response.status === 204) return null;
   return response.json();
 }
 
-// Stream a chat reply. handlers: { onEvent(event), onError(err) }
 export async function streamChat(sessionId, body, handlers, signal) {
   let response = await rawRequest(`/api/chat/${sessionId}`, {
     method: "POST",
@@ -83,9 +78,7 @@ export async function streamChat(sessionId, body, handlers, signal) {
     try {
       const errBody = await response.json();
       if (typeof errBody.detail === "string") detail = errBody.detail;
-    } catch {
-      /* ignore */
-    }
+    } catch {}
     throw new Error(detail);
   }
 
@@ -103,9 +96,7 @@ export async function streamChat(sessionId, body, handlers, signal) {
       if (!line.startsWith("data: ")) continue;
       try {
         handlers.onEvent(JSON.parse(line.slice(6)));
-      } catch {
-        /* skip malformed frames */
-      }
+      } catch {}
     }
   }
 }

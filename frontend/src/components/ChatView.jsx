@@ -10,8 +10,6 @@ const SUGGESTIONS = [
   { title: "Ask your documents", prompt: "Summarize the key points from my uploaded documents." },
 ];
 
-// In the public demo a sample report is preloaded, so the prompts point at it
-// and show retrieval with citations on the very first message.
 const DEMO_SUGGESTIONS = [
   {
     title: "Query the preloaded report",
@@ -47,8 +45,6 @@ export default function ChatView({
   const abortRef = useRef(null);
   const scrollRef = useRef(null);
   const textareaRef = useRef(null);
-  // Session ids this view created itself while sending. Reloading history for
-  // those would wipe the reply that is still streaming into local state.
   const selfCreatedRef = useRef(null);
 
   const effectiveModel =
@@ -61,7 +57,6 @@ export default function ChatView({
       return;
     }
     if (selfCreatedRef.current === sessionId) {
-      // Skip exactly once, for the transition that created this session.
       selfCreatedRef.current = null;
       return;
     }

@@ -1,14 +1,3 @@
-"""Public demo mode.
-
-Powers the one-click guest experience on the hosted Space:
-
-* On startup a hidden template account ingests the sample documents once, so
-  embeddings are paid for a single time per container.
-* Each visitor gets their own isolated guest account whose knowledge base is a
-  pure database clone of the template (no embedding API calls, instant).
-* Guest credentials are random and unusable for a normal login.
-"""
-
 import logging
 import secrets
 import uuid
@@ -33,7 +22,6 @@ GUEST_RETENTION_HOURS = 12
 
 
 async def seed_demo_content(db: AsyncSession) -> None:
-    """Create the template account and ingest the sample documents once."""
     settings = get_settings()
     template = await get_template_user(db)
     if template is None:
@@ -94,7 +82,6 @@ async def get_template_user(db: AsyncSession) -> User | None:
 
 
 async def create_guest_user(db: AsyncSession) -> User:
-    """Create an isolated guest account with a cloned knowledge base."""
     guest = User(
         email=f"guest-{uuid.uuid4().hex[:12]}@{GUEST_EMAIL_DOMAIN}",
         username="Guest",
@@ -110,12 +97,6 @@ async def create_guest_user(db: AsyncSession) -> User:
 
 
 async def clone_template_documents(db: AsyncSession, guest: User) -> None:
-    """Copy the template's documents and chunks to the guest.
-
-    Embeddings are already computed and stored on the template chunk rows, so
-    this is a pure database copy plus an in-process vector store insert. No
-    provider calls, which keeps guest sign-in instant and free.
-    """
     template = await get_template_user(db)
     if template is None:
         return
@@ -145,7 +126,7 @@ async def clone_template_documents(db: AsyncSession, guest: User) -> None:
             chunk_count=source.chunk_count,
         )
         db.add(copy)
-        await db.flush()  # assign the new document id
+        await db.flush()
 
         chunks = (
             (
@@ -193,11 +174,6 @@ async def clone_template_documents(db: AsyncSession, guest: User) -> None:
 
 
 async def purge_stale_guests(db: AsyncSession) -> int:
-    """Delete guest accounts older than the retention window.
-
-    Keeps the demo database small on long-lived containers. Cascades remove the
-    guest's sessions, messages, documents and chunks.
-    """
     cutoff = datetime.now(timezone.utc) - timedelta(hours=GUEST_RETENTION_HOURS)
     stale = (
         (

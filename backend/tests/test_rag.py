@@ -1,5 +1,3 @@
-"""RAG pipeline tests: splitter, fusion, ingestion and retrieval."""
-
 import json
 
 from httpx import AsyncClient
@@ -9,7 +7,6 @@ from app.rag.splitter import split_text
 from tests.conftest import FakeProvider, register_and_login
 
 
-# ------------------------------------------------------------- splitter
 def test_split_short_text_returns_single_chunk() -> None:
     assert split_text("Hello world.", chunk_size=100, overlap=10) == ["Hello world."]
 
@@ -18,7 +15,7 @@ def test_split_respects_chunk_size() -> None:
     text = " ".join(f"word{i}" for i in range(2000))
     chunks = split_text(text, chunk_size=300, overlap=50)
     assert len(chunks) > 1
-    assert all(len(chunk) <= 400 for chunk in chunks)  # some slack over target
+    assert all(len(chunk) <= 400 for chunk in chunks)
 
 
 def test_split_creates_overlap() -> None:
@@ -31,7 +28,6 @@ def test_split_empty_text() -> None:
     assert split_text("   \n\n  ") == []
 
 
-# ------------------------------------------------------------- fusion
 def test_rrf_prefers_ids_ranked_high_in_both_lists() -> None:
     fused = rrf_fuse([["a", "b", "c"], ["b", "a", "d"]])
     ordered = [cid for cid, _ in fused]
@@ -44,7 +40,6 @@ def test_rrf_single_ranking_preserves_order() -> None:
     assert [cid for cid, _ in fused] == ["x", "y", "z"]
 
 
-# ------------------------------------------------------------- end to end
 async def test_upload_and_retrieve(
     client: AsyncClient, fake_provider: FakeProvider
 ) -> None:
@@ -66,7 +61,6 @@ async def test_upload_and_retrieve(
     assert document["status"] == "ready"
     assert document["chunk_count"] > 0
 
-    # Agent uses search_documents and answers with a citation
     fake_provider.turns = [
         {"tool_calls": [("search_documents", '{"query": "revenue growth"}')]},
         {"text": "Revenue grew 45 percent (source: report.txt)."},

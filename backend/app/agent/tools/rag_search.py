@@ -1,5 +1,3 @@
-"""Knowledge base search tool: hybrid retrieval over the user's documents."""
-
 import json
 
 from sqlalchemy.ext.asyncio import AsyncSession

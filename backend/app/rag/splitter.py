@@ -1,17 +1,9 @@
-"""Recursive text splitter.
-
-Splits on paragraph boundaries first, then sentences, then words, keeping
-chunks near the target size with a configurable overlap. Implemented from
-scratch to keep the pipeline dependency-light and fully transparent.
-"""
-
 import re
 
 _SEPARATORS = ["\n\n", "\n", ". ", " "]
 
 
 def split_text(text: str, chunk_size: int = 900, overlap: int = 150) -> list[str]:
-    """Split text into overlapping chunks of roughly chunk_size characters."""
     text = re.sub(r"[ \t]+", " ", text)
     text = re.sub(r"\n{3,}", "\n\n", text).strip()
     if not text:
@@ -27,7 +19,6 @@ def _recursive_split(text: str, chunk_size: int, separators: list[str]) -> list[
     if len(text) <= chunk_size:
         return [text] if text.strip() else []
     if not separators:
-        # Hard split as a last resort
         return [text[i : i + chunk_size] for i in range(0, len(text), chunk_size)]
 
     separator, *rest = separators
@@ -51,7 +42,6 @@ def _merge_with_overlap(pieces: list[str], chunk_size: int, overlap: int) -> lis
     for piece in pieces:
         if current and len(current) + len(piece) > chunk_size:
             chunks.append(current.strip())
-            # Seed the next chunk with the tail of the previous one
             current = current[-overlap:] if overlap > 0 else ""
         current += piece if current == "" or current.endswith((" ", "\n")) else " " + piece
     if current.strip():

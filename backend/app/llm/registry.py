@@ -1,8 +1,3 @@
-"""Provider registry. A single provider instance is shared per process.
-
-Tests override this with a fake provider through set_provider().
-"""
-
 from app.config import get_settings
 from app.llm.base import LLMProvider
 from app.llm.openai_provider import OpenAIProvider

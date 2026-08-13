@@ -1,5 +1,3 @@
-"""Document ingestion pipeline: extract, chunk, embed, index."""
-
 import logging
 
 import numpy as np
@@ -19,7 +17,6 @@ EMBED_BATCH_SIZE = 64
 
 
 async def ingest_document(db: AsyncSession, document: Document, data: bytes) -> None:
-    """Process an uploaded file end to end. Updates the document row in place."""
     settings = get_settings()
     provider = get_provider()
     store = get_vector_store()
@@ -71,7 +68,6 @@ async def ingest_document(db: AsyncSession, document: Document, data: bytes) -> 
 
 
 async def delete_document_data(db: AsyncSession, document: Document) -> None:
-    """Remove a document's chunks from both SQLite and the vector store."""
     get_vector_store().delete_document(document.id)
     await db.execute(delete(Chunk).where(Chunk.document_id == document.id))
     await db.delete(document)

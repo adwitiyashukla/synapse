@@ -1,5 +1,3 @@
-"""Tool unit tests, with emphasis on calculator safety."""
-
 import json
 
 import pytest

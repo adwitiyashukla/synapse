@@ -20,7 +20,7 @@ Do not add any files during creation.
 
 ## 2. Add the secrets
 
-Space **Settings → Variables and secrets → New secret**:
+Space **Settings -> Variables and secrets -> New secret**:
 
 | Name | Value |
 |---|---|

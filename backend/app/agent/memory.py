@@ -1,9 +1,3 @@
-"""Conversation memory: rolling summary plus a recent-message window.
-
-Older turns get compressed into a summary stored on the session, so long
-conversations keep context without unbounded prompt growth.
-"""
-
 import logging
 
 from sqlalchemy import select
@@ -19,7 +13,6 @@ logger = logging.getLogger("synapse.agent.memory")
 async def build_history(
     db: AsyncSession, session: ChatSession
 ) -> list[dict[str, str]]:
-    """Return chat history for the prompt: summary context + recent window."""
     settings = get_settings()
     result = await db.execute(
         select(Message)
@@ -35,10 +28,6 @@ async def build_history(
 
 
 async def maybe_summarize(db: AsyncSession, session_id: str) -> None:
-    """Compress older messages into the session summary when the thread grows.
-
-    Runs after a reply has been sent, so latency is never user-visible.
-    """
     settings = get_settings()
     provider = get_provider()
 

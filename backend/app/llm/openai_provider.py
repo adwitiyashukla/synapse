@@ -1,7 +1,3 @@
-"""OpenAI provider. Works with any OpenAI-compatible API via base_url,
-which includes OpenAI itself, Groq, Together, and local Ollama servers.
-"""
-
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -33,7 +29,6 @@ class OpenAIProvider(LLMProvider):
 
         stream = await self.client.chat.completions.create(**kwargs)
 
-        # Tool call fragments arrive incrementally and must be assembled by index.
         pending_calls: dict[int, dict[str, Any]] = {}
 
         async for chunk in stream:
@@ -68,8 +63,6 @@ class OpenAIProvider(LLMProvider):
                         slot["name"] += tc.function.name
                     if tc.function and tc.function.arguments:
                         slot["arguments"] += tc.function.arguments
-                    # Preserve provider-specific fields (Gemini attaches thought
-                    # signatures here) so they can be echoed back verbatim.
                     slot["extra"].update(getattr(tc, "model_extra", None) or {})
                     if tc.function is not None:
                         slot["function_extra"].update(
@@ -103,9 +96,6 @@ class OpenAIProvider(LLMProvider):
         response = await self.client.embeddings.create(
             model=self.embedding_model, input=texts
         )
-        # The API preserves input order. Sort by index only when every item
-        # actually has one; some providers (e.g. Gemini's compatibility
-        # layer) omit the index field.
         items = list(response.data)
         if all(getattr(item, "index", None) is not None for item in items):
             items.sort(key=lambda item: item.index)

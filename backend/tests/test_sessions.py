@@ -1,5 +1,3 @@
-"""Session CRUD and user isolation tests."""
-
 from httpx import AsyncClient
 
 from tests.conftest import register_and_login

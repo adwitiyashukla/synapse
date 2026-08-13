@@ -1,5 +1,3 @@
-"""Synapse application entry point."""
-
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -29,7 +27,7 @@ async def lifespan(app: FastAPI):
             try:
                 await purge_stale_guests(db)
                 await seed_demo_content(db)
-            except Exception:  # never block startup on demo seeding
+            except Exception:
                 logging.getLogger("synapse").exception("demo seeding failed")
     yield
 
@@ -79,7 +77,6 @@ async def info() -> AppInfo:
     )
 
 
-# Serve the built frontend when present (single-container deployment)
 _dist = Path(__file__).resolve().parent.parent / "static"
 if _dist.is_dir():
     app.mount("/", StaticFiles(directory=_dist, html=True), name="frontend")

@@ -1,7 +1,3 @@
-"""Hybrid retrieval: dense vectors + BM25, fused with Reciprocal Rank Fusion,
-optionally reranked by a small LLM before being handed to the agent.
-"""
-
 import json
 import logging
 import re
@@ -18,7 +14,7 @@ from app.rag.vectorstore import get_vector_store
 
 logger = logging.getLogger("synapse.rag.retriever")
 
-RRF_K = 60  # standard constant from the RRF paper
+RRF_K = 60
 
 
 @dataclass
@@ -36,7 +32,6 @@ def _tokenize(text: str) -> list[str]:
 
 
 def rrf_fuse(rankings: list[list[str]], k: int = RRF_K) -> list[tuple[str, float]]:
-    """Fuse multiple ranked id lists with Reciprocal Rank Fusion."""
     scores: dict[str, float] = {}
     for ranking in rankings:
         for rank, chunk_id in enumerate(ranking):
@@ -47,7 +42,6 @@ def rrf_fuse(rankings: list[list[str]], k: int = RRF_K) -> list[tuple[str, float
 async def retrieve(
     db: AsyncSession, user_id: int, query: str
 ) -> list[RetrievedChunk]:
-    """Run the full hybrid retrieval pipeline for one user query."""
     settings = get_settings()
     provider = get_provider()
 
@@ -65,7 +59,6 @@ async def retrieve(
         return []
     chunk_map: dict[str, tuple[Chunk, str]] = {row[0].id: (row[0], row[1]) for row in rows}
 
-    # Dense ranking
     dense_ids: list[str] = []
     try:
         [query_embedding] = await provider.embed([query])
@@ -76,7 +69,6 @@ async def retrieve(
     except Exception as exc:
         logger.warning("dense retrieval failed, falling back to BM25 only: %s", exc)
 
-    # Sparse ranking (BM25)
     ordered_ids = list(chunk_map.keys())
     corpus = [_tokenize(chunk_map[cid][0].text) for cid in ordered_ids]
     bm25 = BM25Okapi(corpus)
@@ -111,7 +103,6 @@ async def retrieve(
 async def _rerank(
     query: str, candidates: list[RetrievedChunk], top_k: int
 ) -> list[RetrievedChunk]:
-    """Listwise rerank with the utility model. Fails open to fused order."""
     settings = get_settings()
     provider = get_provider()
     listing = "\n\n".join(

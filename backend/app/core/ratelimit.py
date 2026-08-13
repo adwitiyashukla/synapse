@@ -1,9 +1,3 @@
-"""Lightweight in-memory sliding-window rate limiter.
-
-For a single-process deployment this is sufficient. Swap the backing store
-for Redis if the app is scaled horizontally.
-"""
-
 import time
 from collections import defaultdict, deque
 
@@ -17,7 +11,6 @@ class SlidingWindowLimiter:
         self._hits: dict[str, deque[float]] = defaultdict(deque)
 
     def check(self, key: str) -> bool:
-        """Record a hit for the key. Return True if within the limit."""
         now = time.monotonic()
         window_start = now - self.window_seconds
         hits = self._hits[key]

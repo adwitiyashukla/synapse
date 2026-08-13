@@ -1,10 +1,3 @@
-"""Global daily quota for the public demo.
-
-Per-IP limits stop a single visitor from monopolising the demo. This adds a
-second, absolute ceiling so the shared provider key cannot be drained in a day
-no matter how many distinct visitors (or proxies) arrive.
-"""
-
 from datetime import date
 
 
@@ -30,7 +23,6 @@ class DailyQuota:
         return max(0, self.limit - self.used)
 
     def try_consume(self, amount: int = 1) -> bool:
-        """Consume quota. Returns False when the daily ceiling is reached."""
         self._roll()
         if self._used + amount > self.limit:
             return False

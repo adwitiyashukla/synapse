@@ -1,5 +1,3 @@
-"""Application configuration loaded from environment variables or a .env file."""
-
 from functools import lru_cache
 from pathlib import Path
 
@@ -10,36 +8,24 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class Settings(BaseSettings):
-    """Central settings object. Every value can be overridden via environment."""
-
     model_config = SettingsConfigDict(
-        # Look for .env at the repo root, then the backend folder, then the
-        # current directory, so the app starts correctly from any of them.
         env_file=(BASE_DIR.parent / ".env", BASE_DIR / ".env", ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
     )
 
-    # Application
     app_name: str = "Synapse"
     environment: str = "development"
     debug: bool = False
     api_prefix: str = "/api"
 
-    # Security
     secret_key: str = "change-me-in-production"
     access_token_expire_minutes: int = 60
     refresh_token_expire_days: int = 7
     jwt_algorithm: str = "HS256"
 
-    # Database
     database_url: str = f"sqlite+aiosqlite:///{BASE_DIR / 'data' / 'synapse.db'}"
 
-    # LLM provider (any OpenAI-compatible API works via base_url).
-    # Defaults target Google Gemini's free tier via its OpenAI-compatible
-    # endpoint. For OpenAI itself set OPENAI_BASE_URL=https://api.openai.com/v1
-    # and OpenAI model names (see .env.example).
-    # The key is read from GEMINI_API_KEY, OPENAI_API_KEY or LLM_API_KEY.
     openai_api_key: str = Field(
         default="",
         validation_alias=AliasChoices(
@@ -54,12 +40,10 @@ class Settings(BaseSettings):
     max_agent_iterations: int = 6
     request_timeout_seconds: int = 90
 
-    # Memory
     history_window_messages: int = 16
     summarize_after_messages: int = 24
 
-    # RAG
-    vector_store: str = "chroma"  # "chroma" or "memory"
+    vector_store: str = "chroma"
     chroma_dir: str = str(BASE_DIR / "data" / "chroma")
     chunk_size: int = 900
     chunk_overlap: int = 150
@@ -70,23 +54,18 @@ class Settings(BaseSettings):
     rerank_enabled: bool = True
     max_upload_mb: int = 10
 
-    # Rate limiting (requests per window)
     rate_limit_auth: int = 20
     rate_limit_chat: int = 40
     rate_limit_window_seconds: int = 60
 
-    # Public demo mode (used by the Hugging Face Space deployment).
-    # Enables one-click guest sessions and tightens every abuse surface so a
-    # single shared API key can safely serve anonymous visitors.
     demo_mode: bool = False
     demo_banner_repo_url: str = "https://github.com/adwitiyashukla/synapse"
-    demo_sessions_per_hour: int = 5  # guest sign-ins per IP
-    demo_messages_per_hour: int = 12  # chat messages per IP
-    demo_daily_message_cap: int = 200  # across all visitors, protects the key
+    demo_sessions_per_hour: int = 5
+    demo_messages_per_hour: int = 12
+    demo_daily_message_cap: int = 200
     demo_max_upload_mb: int = 3
     demo_seed_dir: str = str(BASE_DIR / "demo_assets")
 
-    # CORS
     cors_origins: str = "http://localhost:5173,http://localhost:8000"
 
     @property

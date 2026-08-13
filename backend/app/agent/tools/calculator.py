@@ -1,9 +1,3 @@
-"""Safe mathematical expression evaluator.
-
-Parses the expression into an AST and walks a strict whitelist of node
-types, so nothing except arithmetic can execute. Never uses eval().
-"""
-
 import ast
 import math
 import operator
@@ -96,7 +90,6 @@ def _eval_node(node: ast.AST) -> float:
 
 
 def evaluate(expression: str) -> str:
-    """Evaluate a math expression and return the result as a string."""
     expression = expression.strip()
     if len(expression) > 500:
         return "Error: expression too long"

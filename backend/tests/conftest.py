@@ -1,9 +1,6 @@
-"""Shared test fixtures: isolated database, fake LLM provider, test client."""
-
 import os
 import tempfile
 
-# Configure the environment BEFORE importing any app module.
 _TMP_DIR = tempfile.mkdtemp(prefix="synapse-test-")
 os.environ.update(
     {
@@ -18,24 +15,23 @@ os.environ.update(
     }
 )
 
-import hashlib  # noqa: E402
-from collections.abc import AsyncIterator  # noqa: E402
-from typing import Any  # noqa: E402
+import hashlib
+from collections.abc import AsyncIterator
+from typing import Any
 
-import numpy as np  # noqa: E402
-import pytest  # noqa: E402
-from httpx import ASGITransport, AsyncClient  # noqa: E402
+import numpy as np
+import pytest
+from httpx import ASGITransport, AsyncClient
 
-from app.api import deps  # noqa: E402
-from app.database import Base, engine  # noqa: E402
-from app.llm.base import ChatOptions, LLMProvider, ToolCallRequest  # noqa: E402
-from app.llm.registry import set_provider  # noqa: E402
-from app.main import app  # noqa: E402
-from app.rag.vectorstore import MemoryVectorStore, set_vector_store  # noqa: E402
+from app.api import deps
+from app.database import Base, engine
+from app.llm.base import ChatOptions, LLMProvider, ToolCallRequest
+from app.llm.registry import set_provider
+from app.main import app
+from app.rag.vectorstore import MemoryVectorStore, set_vector_store
 
 
 def deterministic_embedding(text: str, dims: int = 32) -> list[float]:
-    """Token-additive embedding: texts sharing words get similar vectors."""
     vector = np.zeros(dims, dtype=np.float64)
     for token in text.lower().split():
         seed = int(hashlib.md5(token.encode()).hexdigest()[:8], 16)
@@ -48,12 +44,6 @@ def deterministic_embedding(text: str, dims: int = 32) -> list[float]:
 
 
 class FakeProvider(LLMProvider):
-    """Scripted provider. Each call to stream_chat consumes one scripted turn.
-
-    A turn is either {"text": "..."} or
-    {"tool_calls": [("name", '{"arg": 1}'), ...]}.
-    """
-
     def __init__(self, turns: list[dict[str, Any]] | None = None) -> None:
         self.turns = turns or [{"text": "Hello from the fake model."}]
         self.calls: list[list[dict[str, Any]]] = []
@@ -104,9 +94,6 @@ async def fake_provider() -> AsyncIterator[FakeProvider]:
 
 @pytest.fixture
 async def client(fake_provider: FakeProvider) -> AsyncIterator[AsyncClient]:
-    # Drop pooled connections from the previous test before rebuilding the
-    # schema. A connection left open by a prior test would hold a SQLite lock
-    # and make DROP TABLE fail.
     await engine.dispose()
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)

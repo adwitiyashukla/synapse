@@ -1,11 +1,8 @@
-"""Pydantic schemas for request and response bodies."""
-
 from datetime import datetime
 
 from pydantic import BaseModel, EmailStr, Field
 
 
-# ---------------------------------------------------------------- auth
 class RegisterRequest(BaseModel):
     email: EmailStr
     username: str = Field(min_length=2, max_length=80)
@@ -36,7 +33,6 @@ class UserOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
-# ---------------------------------------------------------------- sessions
 class SessionCreate(BaseModel):
     title: str | None = None
     model: str | None = None
@@ -73,7 +69,6 @@ class MessageOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
-# ---------------------------------------------------------------- chat
 class ChatRequest(BaseModel):
     content: str = Field(min_length=1, max_length=32_000)
     model: str | None = None
@@ -81,7 +76,6 @@ class ChatRequest(BaseModel):
     use_rag: bool = True
 
 
-# ---------------------------------------------------------------- documents
 class DocumentOut(BaseModel):
     id: str
     filename: str
@@ -95,7 +89,6 @@ class DocumentOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
-# ---------------------------------------------------------------- analytics
 class DailyPoint(BaseModel):
     date: str
     messages: int
@@ -127,7 +120,6 @@ class AnalyticsOverview(BaseModel):
     tools: list[ToolUsage]
 
 
-# ---------------------------------------------------------------- meta
 class AppInfo(BaseModel):
     name: str
     default_model: str

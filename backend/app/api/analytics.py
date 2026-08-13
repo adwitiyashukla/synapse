@@ -1,5 +1,3 @@
-"""Usage analytics endpoints: tokens, cost, latency, tools, models."""
-
 import json
 from collections import Counter
 from datetime import datetime, timedelta, timezone
@@ -55,7 +53,6 @@ async def overview(user: CurrentUser, db: DB) -> AnalyticsOverview:
         )
     ).scalar_one()
 
-    # Last 30 days of assistant messages for the daily series and breakdowns
     cutoff = datetime.now(timezone.utc) - timedelta(days=30)
     recent = (
         (

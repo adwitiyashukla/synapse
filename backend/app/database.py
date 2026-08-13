@@ -1,5 +1,3 @@
-"""Async SQLAlchemy engine and session management."""
-
 from collections.abc import AsyncGenerator
 from pathlib import Path
 
@@ -16,7 +14,6 @@ from app.config import get_settings
 settings = get_settings()
 _is_sqlite = settings.database_url.startswith("sqlite")
 
-# Ensure the data directory exists for SQLite
 if _is_sqlite:
     db_path = settings.database_url.split("///")[-1]
     Path(db_path).parent.mkdir(parents=True, exist_ok=True)
@@ -25,14 +22,10 @@ engine = create_async_engine(
     settings.database_url,
     echo=False,
     future=True,
-    # Wait for a competing writer instead of failing instantly. Background
-    # tasks (such as conversation summarization) can briefly hold a write
-    # lock, and Windows enforces SQLite locking more strictly than Linux.
     connect_args={"timeout": 30} if _is_sqlite else {},
 )
 
 if _is_sqlite:
-
     @event.listens_for(engine.sync_engine, "connect")
     def _sqlite_pragmas(dbapi_connection, connection_record) -> None:
         cursor = dbapi_connection.cursor()
@@ -49,18 +42,16 @@ AsyncSessionLocal = async_sessionmaker(
 
 
 class Base(DeclarativeBase):
-    """Declarative base for all ORM models."""
+    pass
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """FastAPI dependency that yields a database session."""
     async with AsyncSessionLocal() as session:
         yield session
 
 
 async def init_db() -> None:
-    """Create tables on startup (a migration tool can replace this later)."""
-    from app import models  # noqa: F401  (register models with the metadata)
+    from app import models
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

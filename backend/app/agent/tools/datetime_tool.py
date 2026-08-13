@@ -1,5 +1,3 @@
-"""Current date and time tool with timezone support."""
-
 import json
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError

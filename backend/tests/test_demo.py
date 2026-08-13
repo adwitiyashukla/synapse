@@ -1,5 +1,3 @@
-"""Public demo mode: guest sessions, seeded knowledge base, and abuse limits."""
-
 import pytest
 from httpx import AsyncClient
 
@@ -17,7 +15,6 @@ from tests.conftest import FakeProvider, register_and_login
 
 @pytest.fixture
 def demo_mode():
-    """Turn demo mode on for a single test and reset the shared limiters."""
     settings = get_settings()
     settings.demo_mode = True
     deps.settings.demo_mode = True
@@ -46,7 +43,6 @@ async def test_demo_session_returns_working_tokens(
     assert me["username"] == "Guest"
     assert me["email"].endswith(f"@{GUEST_EMAIL_DOMAIN}")
 
-    # A guest can immediately use the app
     session = await client.post("/api/sessions", json={}, headers=headers)
     assert session.status_code == 201
 
@@ -62,7 +58,6 @@ async def test_each_guest_is_isolated(
     created = await client.post("/api/sessions", json={}, headers=headers_a)
     session_id = created.json()["id"]
 
-    # Guest B cannot see or touch guest A's session
     assert (await client.get("/api/sessions", headers=headers_b)).json() == []
     stolen = await client.get(f"/api/sessions/{session_id}", headers=headers_b)
     assert stolen.status_code == 404
@@ -88,7 +83,6 @@ async def test_seeded_documents_are_cloned_to_each_guest(
 async def test_guest_clone_costs_no_provider_calls(
     client: AsyncClient, fake_provider: FakeProvider, demo_mode
 ) -> None:
-    """Cloning must reuse stored embeddings, never call the embedding API."""
     async with AsyncSessionLocal() as db:
         await seed_demo_content(db)
 

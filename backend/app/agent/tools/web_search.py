@@ -1,15 +1,13 @@
-"""Web search tool backed by DuckDuckGo. No API key required."""
-
 import asyncio
 import json
 import logging
 
 logger = logging.getLogger("synapse.tools.web_search")
 
-try:  # the package was renamed from duckduckgo_search to ddgs
+try:
     from ddgs import DDGS
-except ImportError:  # pragma: no cover
-    from duckduckgo_search import DDGS  # type: ignore[no-redef]
+except ImportError:
+    from duckduckgo_search import DDGS
 
 
 def _search_sync(query: str, max_results: int) -> list[dict[str, str]]:
@@ -26,7 +24,6 @@ def _search_sync(query: str, max_results: int) -> list[dict[str, str]]:
 
 
 async def run(query: str, max_results: int = 5) -> str:
-    """Search the web and return results as JSON."""
     max_results = max(1, min(int(max_results or 5), 10))
     try:
         results = await asyncio.wait_for(

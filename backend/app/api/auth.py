@@ -1,5 +1,3 @@
-"""Authentication endpoints: register, login, refresh, me."""
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
 
@@ -91,11 +89,6 @@ async def refresh(body: RefreshRequest, db: DB) -> TokenPair:
     dependencies=[Depends(rate_limit_demo_session)],
 )
 async def demo_session(db: DB) -> TokenPair:
-    """One-click guest access for the public demo.
-
-    Creates an isolated throwaway account whose knowledge base is cloned from
-    the seeded sample document, so retrieval works from the first message.
-    """
     if not get_settings().demo_mode:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Demo mode is disabled"
