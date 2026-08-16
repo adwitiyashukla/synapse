@@ -135,11 +135,6 @@ flowchart LR
     ANALYTICS --> DB
 ```
 
-I wrote up the reasoning behind each of these choices in more depth in
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), including why I used Server-Sent Events
-rather than WebSockets and how the two-tier memory keeps prompts from growing without
-bound.
-
 ## How I decided it was good enough
 
 Testing an agent is awkward because the interesting behaviour depends on a model you do not
@@ -270,8 +265,7 @@ synapse/
 │   │                       DocumentsPanel, AnalyticsView, DemoBanner
 │   ├── lib/api.js          fetch wrapper, token refresh, SSE parser
 │   └── styles/             one stylesheet, dark theme
-├── deploy/huggingface/     Dockerfile and setup notes for the public Space
-├── docs/ARCHITECTURE.md    longer write-up of the design decisions
+├── deploy/huggingface/     Dockerfile and README for the public Space
 ├── .github/workflows/      CI, and a six-hourly ping that keeps the Space awake
 └── Dockerfile              node build stage, then python runtime
 ```
