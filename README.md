@@ -15,25 +15,6 @@ API key.
 ![Tests](https://img.shields.io/badge/tests-52%20passing-22c55e)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
-## Why I did not build the obvious version
-
-The obvious version of this project is: embed the user's documents, run cosine similarity
-on the question, paste the top five chunks into the prompt. I built that first. It demos
-beautifully and it breaks the moment anyone asks a question containing a proper noun, a
-product code or an exact figure, because dense embeddings are good at meaning and bad at
-literal tokens. Ask about "Northwind" and you get five chunks that are vaguely about
-robotics companies.
-
-The second thing I noticed is that pure retrieval turns the assistant into a search box
-with extra latency. If someone asks what 1.07 to the power of 30 times 25000 comes to, the
-right move is not to retrieve anything, it is to compute it. If they ask about today's
-weather, no document in the world helps.
-
-So the actual problem is not retrieval. It is deciding, per question, whether to retrieve
-at all. That is what I spent most of the time on, and it is why there is no LangChain here.
-I wanted to see the loop that makes that decision, because when it picks wrong I need to be
-able to read the code and find out why.
-
 ## Screenshots
 
 | Agent choosing a tool | Document answer with citations |
@@ -158,60 +139,6 @@ I wrote up the reasoning behind each of these choices in more depth in
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), including why I used Server-Sent Events
 rather than WebSockets and how the two-tier memory keeps prompts from growing without
 bound.
-
-## Three things I got wrong
-
-Four things broke badly enough to take real time. These are the three worth reading.
-
-### The reply that only appeared when I refreshed
-
-The first message in a brand new chat produced nothing. The tool chips appeared, so the
-agent was clearly running, and then no text. If I refreshed the page, the full answer was
-sitting there waiting for me. So the backend was fine and the browser was throwing the
-reply away.
-
-The chat view creates a session lazily when you send the first message. The parent
-component was keyed on the session id, so the moment that id went from null to a real
-value, React saw a different key, unmounted the component and mounted a fresh one. The
-reply that was streaming into local state went with it. The database write had already
-happened, which is why refreshing showed it.
-
-The fix was removing the key and tracking in a ref that this view created this particular
-session, so the history reload skips exactly once. Two lines of change for two hours of
-staring at a working backend and an empty screen.
-
-### The tool call that worked once and then returned 400
-
-A single tool call was fine. Any follow-up returned `400: Function call is missing a
-thought_signature`.
-
-Gemini attaches an opaque signature to each function call and expects it handed back
-verbatim when you replay the conversation on the next iteration. The OpenAI schema I was
-normalising everything into has no field for it, so my provider was quietly dropping it
-while converting streamed fragments into my own dataclass. Everything worked right up to
-the point where the agent needed a second round trip, which is exactly the case the whole
-project is about.
-
-The fix was carrying two dictionaries of unrecognised provider fields on the tool call
-object and splatting them back when rebuilding the assistant message. It generalises, so
-any provider that decorates tool calls with extra keys now survives the round trip.
-`test_provider_extra_fields_are_echoed_back` pins it down.
-
-### CI said 50 passed and 2 errors, my laptop said 52 passed
-
-Two numbers that could not both be true, which is usually where the interesting bug is.
-
-CI was failing on `DROP TABLE chunks` with "database is locked". The chat endpoint fired
-conversation summarisation with `create_task` so the user would not wait for it. That task
-outlived the request and kept a SQLite connection open. On my machine it finished quickly
-enough to never collide with anything. On a slower shared runner, the next test's schema
-teardown arrived while the connection was still live.
-
-So it was never a test problem. It was a connection leak that only a slower machine was
-able to show me. The fix was attaching the work to the response with Starlette's
-`BackgroundTask`, which means the framework awaits it and releases the connection instead
-of letting it float free, plus disposing the engine in the test fixture. CI has been green
-since.
 
 ## How I decided it was good enough
 
@@ -348,20 +275,6 @@ synapse/
 ├── .github/workflows/      CI, and a six-hourly ping that keeps the Space awake
 └── Dockerfile              node build stage, then python runtime
 ```
-
-## The live demo
-
-The Hugging Face Space runs the same code with `DEMO_MODE=true`, which adds a guest
-endpoint that creates a throwaway account and copies the seeded knowledge base at the
-database layer. A visitor gets working retrieval on their first message without a single
-embedding call.
-
-Since the whole thing runs on a free tier, it is capped: 12 messages an hour per visitor,
-5 guest sessions an hour per address, and 200 messages a day across everyone. Guest
-accounts older than 12 hours are deleted on startup. Space storage is wiped on restart, so
-the sample document is re-indexed automatically each time the container boots, and a
-scheduled GitHub Action pings it every six hours so it never goes to sleep and makes a
-visitor wait for a cold start.
 
 ## Stack
 
